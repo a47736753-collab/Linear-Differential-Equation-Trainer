@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linear Differential Equation Solver</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #f5576c;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 0.9em;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        .question {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #f5576c;
+        }
+
+        .question-text {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.05em;
+        }
+
+        .option {
+            display: block;
+            padding: 12px;
+            margin-bottom: 8px;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .option:hover {
+            border-color: #f5576c;
+            background: #fff5f7;
+        }
+
+        .option input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(245, 87, 108, 0.4);
+        }
+
+        .info-box {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #2196f3;
+        }
+
+        .info-box h3 {
+            color: #1976d2;
+            margin-bottom: 10px;
+            font-size: 1em;
+        }
+
+        .info-box ul, .info-box p {
+            margin-left: 20px;
+            color: #555;
+            font-size: 0.9em;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            font-family: 'Courier New', monospace;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #f5576c;
+        }
+
+        .example {
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 5px;
+            font-style: italic;
+        }
+
+        .result {
+            margin-top: 30px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            border-left: 5px solid #f5576c;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+            animation: slideIn 0.4s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-item {
+            margin-bottom: 20px;
+        }
+
+        .result-label {
+            font-weight: 600;
+            color: #f5576c;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+
+        .result-value {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            color: #333;
+            word-wrap: break-word;
+            line-height: 1.6;
+        }
+
+        .test-score {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 20px 0;
+            font-size: 1.2em;
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .two-column {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📐 Linear Differential Equation Solver</h1>
+        <p class="subtitle">Find the complementary function (yc) and particular integral (yp)</p>
+
+        <!-- PRE-TEST -->
+        <div id="preTest" class="screen active">
+            <div class="info-box">
+                <h3>📝 Pre-Test</h3>
+                <p>Answer 3 questions before starting</p>
+            </div>
+
+            <div class="two-column">
+                <div>
+                    <div class="question">
+                        <div class="question-text">1. General solution of non-homogeneous DE?</div>
+                        <label class="option"><input type="radio" name="q1" value="a"> y = yc only</label>
+                        <label class="option"><input type="radio" name="q1" value="b"> y = yp only</label>
+                        <label class="option"><input type="radio" name="q1" value="c"> y = yc + yp</label>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="question">
+                        <div class="question-text">2. Complex roots α ± βi form?</div>
+                        <label class="option"><input type="radio" name="q2" value="a"> C₁e^(αx) + C₂e^(βx)</label>
+                        <label class="option"><input type="radio" name="q2" value="b"> e^(αx)[C₁cos(βx) + C₂sin(βx)]</label>
+                        <label class="option"><input type="radio" name="q2" value="c"> (C₁ + C₂x)e^(αx)</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="question">
+                <div class="question-text">3. When Δ = 0, what roots?</div>
+                <label class="option"><input type="radio" name="q3" value="a"> Two distinct real</label>
+                <label class="option"><input type="radio" name="q3" value="b"> One repeated real</label>
+                <label class="option"><input type="radio" name="q3" value="c"> Complex conjugate</label>
+            </div>
+
+            <button onclick="submitPreTest()">Submit & Start</button>
+        </div>
+
+        <!-- SOLVER -->
+        <div id="solver" class="screen">
+            <div id="preScore" class="result"></div>
+
+            <div class="info-box">
+                <h3>📚 Supported Types:</h3>
+                <ul>
+                    <li>Form: ay'' + by' + cy = f(x)</li>
+                </ul>
+            </div>
+
+            <div class="input-group">
+                <label for="equation">Differential Equation:</label>
+                <input type="text" id="equation" value="y'' + 5y' + 6y = 0">
+                <div class="example">Try: y'' + 4y = sin(2x) or y'' - 3y' + 2y = e^(3x)</div>
+            </div>
+
+            <button onclick="solveEquation()">Solve</button>
+
+            <div class="result" id="result">
+                <div class="two-column">
+                    <div>
+                        <div class="result-item">
+                            <div class="result-label">Equation:</div>
+                            <div class="result-value" id="equationDisplay"></div>
+                        </div>
+                        <div class="result-item">
+                            <div class="result-label">Complementary Function (yc):</div>
+                            <div class="result-value" id="yc"></div>
+                        </div>
+                        <div class="result-item">
+                            <div class="result-label">Particular Integral (yp):</div>
+                            <div class="result-value" id="yp"></div>
+                        </div>
+                        <div class="result-item">
+                            <div class="result-label">General Solution:</div>
+                            <div class="result-value" id="y"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="result-item">
+                            <div class="result-label">Steps:</div>
+                            <div class="result-value" id="steps"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="result" id="lesson">
+                <div class="result-label">📖 Key Concepts</div>
+                <div class="result-value" id="lessonContent"></div>
+            </div>
+
+            <button onclick="showPostTest()">Go to Post-Test</button>
+        </div>
+
+        <!-- POST-TEST -->
+        <div id="postTest" class="screen">
+            <div class="info-box">
+                <h3>📝 Post-Test</h3>
+                <p>See your improvement</p>
+            </div>
+
+            <div class="two-column">
+                <div>
+                    <div class="question">
+                        <div class="question-text">1. General solution of non-homogeneous DE?</div>
+                        <label class="option"><input type="radio" name="p1" value="a"> y = yc only</label>
+                        <label class="option"><input type="radio" name="p1" value="b"> y = yp only</label>
+                        <label class="option"><input type="radio" name="p1" value="c"> y = yc + yp</label>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="question">
+                        <div class="question-text">2. Complex roots α ± βi form?</div>
+                        <label class="option"><input type="radio" name="p2" value="a"> C₁e^(αx) + C₂e^(βx)</label>
+                        <label class="option"><input type="radio" name="p2" value="b"> e^(αx)[C₁cos(βx) + C₂sin(βx)]</label>
+                        <label class="option"><input type="radio" name="p2" value="c"> (C₁ + C₂x)e^(αx)</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="question">
+                <div class="question-text">3. When Δ = 0, what roots?</div>
+                <label class="option"><input type="radio" name="p3" value="a"> Two distinct real</label>
+                <label class="option"><input type="radio" name="p3" value="b"> One repeated real</label>
+                <label class="option"><input type="radio" name="p3" value="c"> Complex conjugate</label>
+            </div>
+
+            <button onclick="submitPostTest()">Submit</button>
+            <div id="postScore" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        let preTestScore = 0;
+        const answers = {q1: 'c', q2: 'b', q3: 'b'};
+
+        function submitPreTest() {
+            let score = 0;
+            for (let i = 1; i <= 3; i++) {
+                const ans = document.querySelector(`input[name="q${i}"]:checked`);
+                if (ans && ans.value === answers[`q${i}`]) score++;
+            }
+            preTestScore = score;
+            document.getElementById('preTest').classList.remove('active');
+            document.getElementById('solver').classList.add('active');
+            document.getElementById('preScore').innerHTML = `<div class="test-score">Pre-Test: ${score}/3</div>`;
+            document.getElementById('preScore').classList.add('show');
+            window.scrollTo(0, 0);
+        }
+
+        function showPostTest() {
+            document.getElementById('solver').classList.remove('active');
+            document.getElementById('postTest').classList.add('active');
+            window.scrollTo(0, 0);
+        }
+
+        function submitPostTest() {
+            let score = 0;
+            for (let i = 1; i <= 3; i++) {
+                const ans = document.querySelector(`input[name="p${i}"]:checked`);
+                if (ans && ans.value === answers[`q${i}`]) score++;
+            }
+            const improvement = score - preTestScore;
+            let msg = `<div class="test-score">Post: ${score}/3 | Pre: ${preTestScore}/3 | Change: ${improvement >= 0 ? '+' : ''}${improvement}</div>`;
+            if (improvement > 0) msg += '<div style="background:#d4edda;color:#155724;padding:15px;border-radius:10px;margin-top:15px">🎉 Improved!</div>';
+            else if (improvement === 0) msg += '<div style="background:#fff3cd;color:#856404;padding:15px;border-radius:10px;margin-top:15px">👍 Same score!</div>';
+            else msg += '<div style="background:#f8d7da;color:#721c24;padding:15px;border-radius:10px;margin-top:15px">💪 Keep trying!</div>';
+            document.getElementById('postScore').innerHTML = msg;
+            document.getElementById('postScore').classList.add('show');
+        }
+
+        function parseEquation(eqStr) {
+            let eq = eqStr.replace(/\s+/g, '');
+            const parts = eq.split('=');
+            if (parts.length !== 2) throw new Error('Need exactly one =');
+            let lhs = parts[0], rhs = parts[1];
+            let a = 0, b = 0, c = 0;
+            const y2 = lhs.match(/([+-]?\d*\.?\d*)y''/);
+            if (y2) a = y2[1] === '' || y2[1] === '+' ? 1 : y2[1] === '-' ? -1 : parseFloat(y2[1]);
+            const y1 = lhs.match(/([+-]?\d*\.?\d*)y'(?!')/);
+            if (y1) b = y1[1] === '' || y1[1] === '+' ? 1 : y1[1] === '-' ? -1 : parseFloat(y1[1]);
+            const y0 = lhs.match(/([+-]?\d*\.?\d*)y(?!')/);
+            if (y0) c = y0[1] === '' || y0[1] === '+' ? 1 : y0[1] === '-' ? -1 : parseFloat(y0[1]);
+            let rhsType = 'homogeneous', rhsParams = {};
+            if (rhs === '0') rhsType = 'homogeneous';
+            else if (rhs.includes('e^')) {
+                rhsType = 'exponential';
+                const exp = rhs.match(/([+-]?\d*\.?\d*)e\^\(([+-]?\d*\.?\d*)x\)/) || rhs.match(/([+-]?\d*\.?\d*)e\^([+-]?\d*\.?\d*)x/);
+                if (exp) {
+                    rhsParams.A = exp[1] === '' || exp[1] === '+' ? 1 : exp[1] === '-' ? -1 : parseFloat(exp[1]);
+                    rhsParams.r = parseFloat(exp[2]);
+                }
+            } else if (rhs.includes('sin') || rhs.includes('cos')) {
+                rhsType = 'trig';
+                const sin = rhs.match(/([+-]?\d*\.?\d*)sin\(([+-]?\d*\.?\d*)x\)/);
+                const cos = rhs.match(/([+-]?\d*\.?\d*)cos\(([+-]?\d*\.?\d*)x\)/);
+                if (sin) {
+                    rhsParams.trigType = 'sin';
+                    rhsParams.A = sin[1] === '' || sin[1] === '+' ? 1 : sin[1] === '-' ? -1 : parseFloat(sin[1]);
+                    rhsParams.k = parseFloat(sin[2]);
+                } else if (cos) {
+                    rhsParams.trigType = 'cos';
+                    rhsParams.A = cos[1] === '' || cos[1] === '+' ? 1 : cos[1] === '-' ? -1 : parseFloat(cos[1]);
+                    rhsParams.k = parseFloat(cos[2]);
+                }
+            } else {
+                rhsType = 'polynomial';
+                rhsParams.poly = rhs;
+            }
+            return { a, b, c, rhsType, rhsParams, originalRhs: rhs };
+        }
+
+        function solveComplementary(a, b, c) {
+            const d = b*b - 4*a*c;
+            let sol, steps = [];
+            steps.push(`<strong>Characteristic Equation:</strong><br>${a}r² + ${b}r + ${c} = 0`);
+            steps.push(`<br><strong>Discriminant:</strong><br>Δ = ${d.toFixed(4)}`);
+            if (d > 0) {
+                const r1 = (-b + Math.sqrt(d)) / (2*a);
+                const r2 = (-b - Math.sqrt(d)) / (2*a);
+                steps.push(`<br><strong>Two real roots:</strong><br>r₁ = ${r1.toFixed(4)}<br>r₂ = ${r2.toFixed(4)}`);
+                sol = `C₁e^(${r1.toFixed(4)}x) + C₂e^(${r2.toFixed(4)}x)`;
+            } else if (Math.abs(d) < 0.0001) {
+                const r = -b / (2*a);
+                steps.push(`<br><strong>Repeated root:</strong><br>r = ${r.toFixed(4)}`);
+                sol = `(C₁ + C₂x)e^(${r.toFixed(4)}x)`;
+            } else {
+                const re = -b / (2*a);
+                const im = Math.sqrt(-d) / (2*a);
+                steps.push(`<br><strong>Complex roots:</strong><br>${re.toFixed(4)} ± ${im.toFixed(4)}i`);
+                sol = `e^(${re.toFixed(4)}x)[C₁cos(${im.toFixed(4)}x) + C₂sin(${im.toFixed(4)}x)]`;
+            }
+            return { solution: sol, steps };
+        }
+
+        function solveParticular(a, b, c, rhsType, rhsParams) {
+            let sol, steps = [];
+            if (rhsType === 'homogeneous') {
+                steps.push('<strong>Particular Integral:</strong><br>Homogeneous: yp = 0');
+                return { solution: '0', steps };
+            }
+            steps.push('<strong>Particular Integral (yp):</strong><br>Method of Undetermined Coefficients');
+            if (rhsType === 'exponential') {
+                const { A, r } = rhsParams;
+                const test = a*r*r + b*r + c;
+                steps.push(`<br>f(x) = ${A}e^(${r}x)<br>Assume: yp = Ke^(${r}x)`);
+                if (Math.abs(test) < 0.001) {
+                    steps.push('<br><strong>⚠️ Resonance!</strong><br>Use: yp = Kxe^(rx)');
+                    sol = `Kxe^(${r}x)`;
+                } else {
+                    const K = A / test;
+                    steps.push(`<br>Substitute and solve:<br>K(${a}r² + ${b}r + ${c}) = ${A}<br>K(${test.toFixed(4)}) = ${A}<br><strong>K = ${K.toFixed(4)}</strong>`);
+                    sol = `${K.toFixed(4)}e^(${r}x)`;
+                }
+            } else if (rhsType === 'trig') {
+                const { A, k, trigType } = rhsParams;
+                steps.push(`<br>f(x) = ${A}${trigType}(${k}x)<br>Assume: yp = Pcos(${k}x) + Qsin(${k}x)`);
+                
+                // Calculate P and Q
+                const k2 = k * k;
+                const denom = (c - a*k2)*(c - a*k2) + (b*k)*(b*k);
+                
+                if (trigType === 'sin') {
+                    const P = (-A * b * k) / denom;
+                    const Q = (A * (c - a*k2)) / denom;
+                    steps.push(`<br>Substitute yp and derivatives:<br>yp' = -Pk·sin(${k}x) + Qk·cos(${k}x)<br>yp'' = -Pk²·cos(${k}x) - Qk²·sin(${k}x)`);
+                    steps.push(`<br>Equate coefficients:<br><strong>P = ${P.toFixed(4)}</strong><br><strong>Q = ${Q.toFixed(4)}</strong>`);
+                    sol = `${P.toFixed(4)}cos(${k}x) + ${Q.toFixed(4)}sin(${k}x)`;
+                } else {
+                    const P = (A * (c - a*k2)) / denom;
+                    const Q = (A * b * k) / denom;
+                    steps.push(`<br>Substitute yp and derivatives:<br>yp' = -Pk·sin(${k}x) + Qk·cos(${k}x)<br>yp'' = -Pk²·cos(${k}x) - Qk²·sin(${k}x)`);
+                    steps.push(`<br>Equate coefficients:<br><strong>P = ${P.toFixed(4)}</strong><br><strong>Q = ${Q.toFixed(4)}</strong>`);
+                    sol = `${P.toFixed(4)}cos(${k}x) + ${Q.toFixed(4)}sin(${k}x)`;
+                }
+            } else {
+                steps.push('<br>Polynomial form - solve by substitution');
+                sol = 'Polynomial solution';
+            }
+            return { solution: sol, steps };
+        }
+
+        function solveEquation() {
+            try {
+                const eq = document.getElementById('equation').value;
+                const p = parseEquation(eq);
+                if (p.a === 0) { alert('Not 2nd order!'); return; }
+                const comp = solveComplementary(p.a, p.b, p.c);
+                const part = solveParticular(p.a, p.b, p.c, p.rhsType, p.rhsParams);
+                const gen = p.rhsType === 'homogeneous' ? comp.solution : `${comp.solution} + ${part.solution}`;
+                document.getElementById('equationDisplay').textContent = eq;
+                document.getElementById('yc').textContent = comp.solution;
+                document.getElementById('yp').innerHTML = part.solution;
+                document.getElementById('y').textContent = gen;
+                document.getElementById('steps').innerHTML = [...comp.steps, '<br><hr style="margin:15px 0;border:none;border-top:2px solid #e0e0e0;"><br>', ...part.steps].join('');
+                document.getElementById('lessonContent').innerHTML = '<strong>yc:</strong> Homogeneous solution (natural response)<br><strong>yp:</strong> Particular solution (forced response)<br><strong>General:</strong> y = yc + yp';
+                document.getElementById('result').classList.add('show');
+                document.getElementById('lesson').classList.add('show');
+            } catch (e) {
+                alert('Error: ' + e.message);
+            }
+        }
+    </script>
+</body>
+</html>
